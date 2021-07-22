@@ -1242,52 +1242,50 @@ end
 
 ## Processes
 ### Message Passing
-  - send(dest :: Process.dest(), message) :: message when message: any()
-    - dest
-      - a remote or local PID
-      - a local port 
-      - a locally registered name, or
-      - a tuple in the form of {registered_name, node} for a registered name at another
-node.
-  - defmacro receive(args)
-    - Checks if there is a message matching the given clauses in the current process
+#### send(dest :: Process.dest(), message) :: message when message: any()
+- dest
+    - a remote or local PID
+    - a local port 
+    - a locally registered name, or
+    - a tuple in the form of {registered_name, node} for a registered name at another node.
+#### defmacro receive(args)
+- Checks if there is a message matching the given clauses in the current process
 mailbox.
-    - In case there is no such message, 
-      - the current process hangs until a message
-arrives or 
-      - waits until a given timeout value.
+- In case there is no such message, 
+    - the current process hangs until a message arrives or 
+    - waits until a given timeout value.
 ```elixir
-    receive do
-      {:selector, number, name} when is_integer(number) ->
-        name
-      name when is_atom(name) ->
-        name
-      _ ->
-        IO.puts(:stderr, "Unexpected message received")
-    end
+receive do
+  {:selector, number, name} when is_integer(number) ->
+    name
+  name when is_atom(name) ->
+    name
+  _ ->
+    IO.puts(:stderr, "Unexpected message received")
+end
 ```
-    - An optional `after` clause can be given in case the message was not received after the given timeout period, specified in milliseconds:
+- An optional `after` clause can be given in case the message was not received after the given timeout period, specified in milliseconds:
 ```elixir
-    receive do
-      {:selector, number, name} when is_integer(number) ->
+receive do
+    {:selector, number, name} when is_integer(number) ->
         name
-      name when is_atom(name) ->
+    name when is_atom(name) ->
         name
-      _ ->
+    _ ->
         IO.puts(:stderr, "Unexpected message received")
-    after
-      5000 ->
+after
+    5000 ->
         IO.puts(:stderr, "No message in 5 seconds")
-    end
+end
 ```
-    - The `after` clause can be specified even if there are no match clauses. 
-      - The timeout value given to `after` can be any expression evaluating to one of the allowed values:
-        - :infinity 
-          - the process should wait indefinitely for a matching message, this is the same as not using the after clause
-        - 0 
-          - if there is no matching message in the mailbox, the timeout will occur immediately
-        - positive integer smaller than or equal to 4_294_967_295 (0xFFFFFFFF in hexadecimal notation) 
-          - it should be possible to represent the timeout value as an unsigned 32-bit integer.
+- The `after` clause can be specified even if there are no match clauses. 
+- The timeout value given to `after` can be any expression evaluating to one of the allowed values:
+    - :infinity 
+        - the process should wait indefinitely for a matching message, this is the same as not using the after clause
+    - 0 
+        - if there is no matching message in the mailbox, the timeout will occur immediately
+    - positive integer smaller than or equal to 4_294_967_295 (0xFFFFFFFF in hexadecimal notation) 
+        - it should be possible to represent the timeout value as an unsigned 32-bit integer.
 
 
 
