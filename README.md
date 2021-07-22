@@ -37,7 +37,7 @@ This Document: https://github.com/itsgreggreg/elixir_quick_reference<br>
     - [Standard infix](#standard-infix)
     - [Standard prefix](#standard-prefix)
     - [= (match)](#-match)
-    - [^ (pin)](#-pin)
+    - [^ (pin)](#%5E-pin)
     - [|> (pipe)](#-pipe)
     - [=~ (string match)](#-string-match)
     - [? (codepoint)](#-codepoint)
@@ -48,8 +48,10 @@ This Document: https://github.com/itsgreggreg/elixir_quick_reference<br>
   - [Semicolons](#semicolons)
   - [Do, End](#do-end)
   - [Pattern Matching](#pattern-matching)
+    - [Maps](#maps)
     - [Binaries](#binaries)
-  - [Reserved Words](#reserved-words)
+    - [Ranges](#ranges)
+  - [Reserved words](#reserved-words)
 - [Truthiness](#truthiness)
 - [Sorting](#sorting)
 - [Modules](#modules)
@@ -57,6 +59,10 @@ This Document: https://github.com/itsgreggreg/elixir_quick_reference<br>
   - [Module Functions](#module-functions)
   - [Private Functions](#private-functions)
   - [Working with other modules](#working-with-other-modules)
+    - [import](#import)
+    - [require](#require)
+    - [use](#use)
+    - [alias](#alias)
   - [Attributes](#attributes)
   - [Documentation](#documentation)
   - [Introspection](#introspection)
@@ -76,14 +82,19 @@ This Document: https://github.com/itsgreggreg/elixir_quick_reference<br>
 - [Sigils](#sigils)
 - [Metaprogramming](#metaprogramming)
 - [Processes](#processes)
+  - [Message Passing](#message-passing)
 - [Structs](#structs)
 - [Working with Files](#working-with-files)
 - [Erlang Interoperability](#erlang-interoperability)
 - [IEx](#iex)
+  - [Running](#running)
+  - [Using](#using)
+    - [Some useful functions](#some-useful-functions)
 - [Mix](#mix)
   - [Applications](#applications)
   - [Tasks](#tasks)
 - [Tests](#tests)
+  - [Debugging in the context of a test](#debugging-in-the-context-of-a-test)
 - [Style Guide](#style-guide)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -1230,6 +1241,55 @@ end
  - var!
 
 ## Processes
+### Message Passing
+  - send(dest :: Process.dest(), message) :: message when message: any()
+    - dest
+      - a remote or local PID
+      - a local port 
+      - a locally registered name, or
+      - a tuple in the form of {registered_name, node} for a registered name at another
+node.
+  - defmacro receive(args)
+    - Checks if there is a message matching the given clauses in the current process
+mailbox.
+    - In case there is no such message, 
+      - the current process hangs until a message
+arrives or 
+      - waits until a given timeout value.
+```elixir
+    receive do
+      {:selector, number, name} when is_integer(number) ->
+        name
+      name when is_atom(name) ->
+        name
+      _ ->
+        IO.puts(:stderr, "Unexpected message received")
+    end
+```
+    - An optional `after` clause can be given in case the message was not received after the given timeout period, specified in milliseconds:
+```elixir
+    receive do
+      {:selector, number, name} when is_integer(number) ->
+        name
+      name when is_atom(name) ->
+        name
+      _ ->
+        IO.puts(:stderr, "Unexpected message received")
+    after
+      5000 ->
+        IO.puts(:stderr, "No message in 5 seconds")
+    end
+```
+    - The `after` clause can be specified even if there are no match clauses. 
+      - The timeout value given to `after` can be any expression evaluating to one of the allowed values:
+        - :infinity 
+          - the process should wait indefinitely for a matching message, this is the same as not using the after clause
+        - 0 
+          - if there is no matching message in the mailbox, the timeout will occur immediately
+        - positive integer smaller than or equal to 4_294_967_295 (0xFFFFFFFF in hexadecimal notation) 
+          - it should be possible to represent the timeout value as an unsigned 32-bit integer.
+
+
 
 ## Structs
   - %ModuleName{}
